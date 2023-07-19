@@ -5,6 +5,9 @@ import com.precisely.apis
 from com.precisely.apis.api import schools_service_api
 from com.precisely.apis.api import addresses_service__api
 import json
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import db
 
 app = Flask(__name__)
 precisely_client = None
@@ -41,10 +44,7 @@ def fetchSchools(api_client, addy):
     try:
         # Search Nearby Schools by Address
         api_response = api_instance.get_schools_by_address(addy)
-        #school_names = [school.name for school in api_response.school]
-        response = str(api_response.school)
-        # single to double quotes
-        return response.replace("'", '"')
+        return api_response        
     
     except com.precisely.apis.ApiException as e:
         print("Exception when calling SchoolsServiceApi->get_schools_by_address: %s\n" % e)
@@ -65,6 +65,9 @@ def parseRawText():
     response = completion.choices[0].message.content
     return response
 
+def queryAccomodations(schools):
+    ref = db.reference("schools")
+    ref.set({school.id : "test" for school in schools})
 
 @app.route("/api/v1/getNearbySchools", methods=['GET'])
 def getNearbySchools():
@@ -73,7 +76,12 @@ def getNearbySchools():
     city = str(params.get("city") or "")
     address = fetchBoundaryAddress(precisely_client, city, zip)
     schools = fetchSchools(precisely_client, address)
-    return schools
+    queryAccomodations(schools.school)
+    # single to double quotes
+    response = str(schools.school).replace("'", '"')
+    response = jsonify(json.loads(response))
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -87,6 +95,10 @@ with com.precisely.apis.ApiClient(configuration) as api_client:
     api_client.generateAndSetToken()
     precisely_client = api_client
 
+cred = credentials.Certificate('credential.json')
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://neurodiversityprojectgroupa-default-rtdb.firebaseio.com/'
+})
 
 if __name__ == "__main__":
     app.run()
