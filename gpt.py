@@ -26,8 +26,8 @@ def addressesAPI(api_client, city="", postal=""):
     try:
         # Addresses Count by Boundary Name.
         api_response = api_instance.get_addressesby_boundary_name(country="USA",
-                                                                         area_name3=city,
-                                                                         post_code=postal)
+                                                                  area_name3=city,
+                                                                  post_code=postal)
         addresses = api_response.address_list
 
         residential_addresses = [address for address in api_response.address_list if address.property_type == "X"]
@@ -47,9 +47,9 @@ with com.precisely.apis.ApiClient(configuration) as api_client:
     api_client.oAuthApiKey = os.getenv("PRECISELY_KEY")
     api_client.oAuthSecret = os.getenv("PRECISELY_SECRET")
     api_client.generateAndSetToken()
-    address = addressesAPI(api_client, postal="94305")
-    response = schoolAPI(api_client, address)
+    address = addressesAPI(api_client, city="palo alto")
+    #response = schoolAPI(api_client, address)
     #schools = json.loads(str(response))
-    print(response)
+    print(address)
 
     
