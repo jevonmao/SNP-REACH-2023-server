@@ -10,13 +10,14 @@ from flask_cors import CORS
 from celery import Celery
 
 app = Flask(__name__)
+CORS(app)
+
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
 app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
 
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
 
-CORS(app)
 
 def get_state(zip_string):
     if not isinstance(zip_string, str):
@@ -308,8 +309,13 @@ def getMatchedAccomodations():
 
 @app.route("/api/v1/getRecommendedSchools", methods=['GET'])
 def getRecommendedSchools():
-    ref = db.reference("recommended_schools")
-    return ref.get()
+    recommended = []
+    
+    schools = db.reference("recommended_schools").get()
+    for school in schools:
+        recommended.append(db.reference("schools").child(school).get())
+
+    return recommended
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 cred = credentials.Certificate('credential.json')
