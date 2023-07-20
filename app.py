@@ -220,6 +220,8 @@ def getNearbySchools():
     zip = str(params.get("zip") or "")
     city = str(params.get("city") or "")
     state = str(params.get("state") or "")
+    devMode = params.get("devMode")
+
     '''
     Sort list. Values are: schoolname, distance, rank. For descending order, precede with '-' i.e. -schoolname (optional, default: schoolname)
     '''
@@ -233,6 +235,11 @@ def getNearbySchools():
         return jsonify({"error" : "Must provide state in parameters."})
     if zip:
         state = get_state(zip)
+
+    if devMode == True or devMode == None:
+        mock_json = open("mock.json", "r").read()
+        return json.loads(mock_json)
+    
     headers = {
     "Accept": "application/json",
     }
