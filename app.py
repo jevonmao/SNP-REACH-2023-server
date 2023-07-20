@@ -1,40 +1,184 @@
 from flask import Flask, jsonify, request
 import os
 import openai
-import com.precisely.apis
-from com.precisely.apis.api import schools_service_api
-from com.precisely.apis.api import addresses_service__api
 import json
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
+import requests
 
 app = Flask(__name__)
-precisely_client = None
 
-def fetchBoundaryAddress(api_client, city="", postal=""):
-    api_instance = addresses_service__api.AddressesServiceApi(api_client)
-    try:
-        if not city and not postal:
-            return None
-        
-        # Addresses Count by Boundary Name.
-        api_response = api_instance.get_addressesby_boundary_name(country="USA",
-                                                                         area_name3=city,
-                                                                         post_code=postal)
-        addresses = api_response.address_list
-
-        residential_addresses = [address for address in api_response.address_list if address.property_type == "X"]
-        if residential_addresses:
-            residential_address = residential_addresses[0]
-        else:
-            residential_address = addresses[0]
-
-        address_str = f"{residential_address.address_number} {residential_address.street_name}, {residential_address.post_code}"
-        return address_str
-
-    except com.precisely.apis.ApiException as e:
-        print("Exception when calling AddressesServiceApi->get_addresses_count_by_boundary_name: %s\n" % e)
+def get_state(zip_string):
+    if not isinstance(zip_string, str):
+        print('Must pass the zipcode as a string.')
+        return
+    if len(zip_string) != 5:
+        print('Must pass a 5-digit zipcode.')
+        return
+    zipcode = int(zip_string)
+    st = None
+    state = None
+    if 35000 <= zipcode <= 36999:
+        st = 'AL'
+        state = 'Alabama'
+    elif 99500 <= zipcode <= 99999:
+        st = 'AK'
+        state = 'Alaska'
+    elif 85000 <= zipcode <= 86999:
+        st = 'AZ'
+        state = 'Arizona'
+    elif 71600 <= zipcode <= 72999:
+        st = 'AR'
+        state = 'Arkansas'
+    elif 90000 <= zipcode <= 96699:
+        st = 'CA'
+        state = 'California'
+    elif 80000 <= zipcode <= 81999:
+        st = 'CO'
+        state = 'Colorado'
+    elif (6000 <= zipcode <= 6389) or (6500 <= zipcode <= 6999):
+        st = 'CT'
+        state = 'Connecticut'
+    elif 19700 <= zipcode <= 19999:
+        st = 'DE'
+        state = 'Delaware'
+    elif 32000 <= zipcode <= 34999:
+        st = 'FL'
+        state = 'Florida'
+    elif 30000 <= zipcode <= 31999:
+        st = 'GA'
+        state = 'Georgia'
+    elif 96700 <= zipcode <= 96999:
+        st = 'HI'
+        state = 'Hawaii'
+    elif 83200 <= zipcode <= 83999:
+        st = 'ID'
+        state = 'Idaho'
+    elif 60000 <= zipcode <= 62999:
+        st = 'IL'
+        state = 'Illinois'
+    elif 46000 <= zipcode <= 47999:
+        st = 'IN'
+        state = 'Indiana'
+    elif 50000 <= zipcode <= 52999:
+        st = 'IA'
+        state = 'Iowa'
+    elif 66000 <= zipcode <= 67999:
+        st = 'KS'
+        state = 'Kansas'
+    elif 40000 <= zipcode <= 42999:
+        st = 'KY'
+        state = 'Kentucky'
+    elif 70000 <= zipcode <= 71599:
+        st = 'LA'
+        state = 'Louisiana'
+    elif 3900 <= zipcode <= 4999:
+        st = 'ME'
+        state = 'Maine'
+    elif 20600 <= zipcode <= 21999:
+        st = 'MD'
+        state = 'Maryland'
+    elif 1000 <= zipcode <= 2799:
+        st = 'MA'
+        state = 'Massachusetts'
+    elif 48000 <= zipcode <= 49999:
+        st = 'MI'
+        state = 'Michigan'
+    elif 55000 <= zipcode <= 56999:
+        st = 'MN'
+        state = 'Minnesota'
+    elif 38600 <= zipcode <= 39999:
+        st = 'MS'
+        state = 'Mississippi'
+    elif 63000 <= zipcode <= 65999:
+        st = 'MO'
+        state = 'Missouri'
+    elif 59000 <= zipcode <= 59999:
+        st = 'MT'
+        state = 'Montana'
+    elif 27000 <= zipcode <= 28999:
+        st = 'NC'
+        state = 'North Carolina'
+    elif 58000 <= zipcode <= 58999:
+        st = 'ND'
+        state = 'North Dakota'
+    elif 68000 <= zipcode <= 69999:
+        st = 'NE'
+        state = 'Nebraska'
+    elif 88900 <= zipcode <= 89999:
+        st = 'NV'
+        state = 'Nevada'
+    elif 3000 <= zipcode <= 3899:
+        st = 'NH'
+        state = 'New Hampshire'
+    elif 7000 <= zipcode <= 8999:
+        st = 'NJ'
+        state = 'New Jersey'
+    elif 87000 <= zipcode <= 88499:
+        st = 'NM'
+        state = 'New Mexico'
+    elif 10000 <= zipcode <= 14999:
+        st = 'NY'
+        state = 'New York'
+    elif 43000 <= zipcode <= 45999:
+        st = 'OH'
+        state = 'Ohio'
+    elif 73000 <= zipcode <= 74999:
+        st = 'OK'
+        state = 'Oklahoma'
+    elif 97000 <= zipcode <= 97999:
+        st = 'OR'
+        state = 'Oregon'
+    elif 15000 <= zipcode <= 19699:
+        st = 'PA'
+        state = 'Pennsylvania'
+    elif 300 <= zipcode <= 999:
+        st = 'PR'
+        state = 'Puerto Rico'
+    elif 2800 <= zipcode <= 2999:
+        st = 'RI'
+        state = 'Rhode Island'
+    elif 29000 <= zipcode <= 29999:
+        st = 'SC'
+        state = 'South Carolina'
+    elif 57000 <= zipcode <= 57999:
+        st = 'SD'
+        state = 'South Dakota'
+    elif 37000 <= zipcode <= 38599:
+        st = 'TN'
+        state = 'Tennessee'
+    elif 75000 <= zipcode <= 79999:
+        st = 'TX'
+        state = 'Texas'
+    elif 84000 <= zipcode <= 84999:
+        st = 'UT'
+        state = 'Utah'
+    elif 5000 <= zipcode <= 5999:
+        st = 'VT'
+        state = 'Vermont'
+    elif 22000 <= zipcode <= 24699:
+        st = 'VA'
+        state = 'Virginia'
+    elif 20000 <= zipcode <= 20599:
+        st = 'DC'
+        state = 'Washington DC'
+    elif 98000 <= zipcode <= 99499:
+        st = 'WA'
+        state = 'Washington'
+    elif 24700 <= zipcode <= 26999:
+        st = 'WV'
+        state = 'West Virginia'
+    elif 53000 <= zipcode <= 54999:
+        st = 'WI'
+        state = 'Wisconsin'
+    elif 82000 <= zipcode <= 83199:
+        st = 'WY'
+        state = 'Wyoming'
+    else:
+        print('Invalid zipcode.')
+        return
+    return st, state
 
 def fetchSchools(api_client, addy):
     # Create an instance of the API class
@@ -49,7 +193,7 @@ def fetchSchools(api_client, addy):
     except com.precisely.apis.ApiException as e:
         print("Exception when calling SchoolsServiceApi->get_schools_by_address: %s\n" % e)
 
-@app.route("/api/v1/parseRaw", methods=['POST'])
+@app.route("/api/v1/parseRaw", methods=[''])
 def parseRawText():
     rawContent = request.form.get("content")
     systemPrompt = """
@@ -74,27 +218,32 @@ def getNearbySchools():
     params = request.args
     zip = str(params.get("zip") or "")
     city = str(params.get("city") or "")
-    address = fetchBoundaryAddress(precisely_client, city, zip)
-    schools = fetchSchools(precisely_client, address)
-    queryAccomodations(schools.school)
-    # single to double quotes
-    response = str(schools.school).replace("'", '"')
-    response = jsonify(json.loads(response))
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    return response
+    state = str(params.get("state") or "")
+    if not zip and not city and not state:
+        return jsonify({"error" : "No query parameters provided."})
+    if city and zip:
+        return jsonify({"error" : "Too many query parameters provided."})
+    if city and not state:
+        return jsonify({"error" : "Must provide state in parameters."})
+    if zip:
+        state = get_state(zip)
+    headers = {
+    "Accept": "application/json",
+    }
+    params = {
+        "st": state,
+        "zip": zip,
+        "city": city,
+        "appID": os.getenv("APP_ID"),
+        "perPage": "50",
+        "appKey": os.getenv("APP_KEY"),
+    }
+
+    response = requests.get("https://api.schooldigger.com/v2.0/schools", params=params, headers=headers).json()
+    print(response["numberOfPages"])
+    return response["schoolList"]
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
-configuration = com.precisely.apis.Configuration(
-    host = "https://api.precisely.com"
-)
-
-with com.precisely.apis.ApiClient(configuration) as api_client:
-    api_client.oAuthApiKey = os.getenv("PRECISELY_KEY")
-    api_client.oAuthSecret = os.getenv("PRECISELY_SECRET")
-    api_client.generateAndSetToken()
-    precisely_client = api_client
-
 cred = credentials.Certificate('credential.json')
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://neurodiversityprojectgroupa-default-rtdb.firebaseio.com/'
