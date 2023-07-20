@@ -1,3 +1,5 @@
+
+--------------------
 IRED RESULTS DEVELOPMENTAL PROFILE (Preschool Only)
 Adaptations Required? No Yes (specify below)
 STATEWIDE ASSESSMENT SYSTEM
@@ -121,6 +123,8 @@ CHAPTER 16
 APPENDIX A
 IEP – Assessment & Support for English Learners
 Student
+--------------------
+
 reaching the age of majority. (Section 614(d) (1) (A) (i) (VIII), emphasis added)
 7.17 POST-SECONDARY FOLLOW UP
 The State requires districts to seek information from students who have
@@ -310,7 +314,9 @@ Timing/Scheduling of Tasks/Assignments/tests:
 _____ Extended time(s): _____ minutes for every
 _____ minutes given to non-disabled peers
 _____ Tests/assignments given in shortened time segments
-_____ student’s eligibility, the effect of the disability and the areas of need
+_____
+--------------------
+ student’s eligibility, the effect of the disability and the areas of need
 [IEP 2B] Present Levels of Academic Achievement and Functional Performance -
 describes the student’s present levels of skills in the following areas: pre-academic/
 academic/functional, communication, social emotional behavioral, vocational, fine
@@ -439,6 +445,8 @@ the same school year, the new LEA shall provide comparable services, in consulta
 with the parents, until the new LEA adopts the previous IEP or develops a new IEP.
 Pursuant to AB 1662, the IEP must be adopted or revised within 30 days. If a student on an
 IEP tranfers from one LEA to another LEA in a different State within the same year, the
+--------------------
+
  1. The student has a severe orthopedic impairment including impairments caused by
 congenital anomaly, disease (such as poliomyelitis, bone tuberculosis), or other causes
 (such as cerebral palsy, amputations, and fractures or burns that cause contractures).

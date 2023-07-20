@@ -7,8 +7,15 @@ from firebase_admin import credentials
 from firebase_admin import db
 import requests
 from flask_cors import CORS
+from celery import Celery
 
 app = Flask(__name__)
+app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
+app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+
+celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+celery.conf.update(app.config)
+
 CORS(app)
 
 def get_state(zip_string):
@@ -211,6 +218,7 @@ def parseRawText():
     response = completion.choices[0].message.content
     return response
 
+@celery.task
 def queryAccomodations(schools):
     ref = db.reference("schools")
     for school in schools:
@@ -226,7 +234,7 @@ def getSchoolDetail():
     ref = db.reference("schools")
     if not schoolID:
         return jsonify({"error" : "No ID provided."}), 400
-    school = ref.child(schoolID).child("accommodations")
+    school = ref.child(schoolID)
     data = school.get()
     if data is not None:
         return data
@@ -271,12 +279,12 @@ def getNearbySchools():
         "perPage": "50",
         "sortBy": sortBy,
         "appKey": os.getenv("APP_KEY"),
-        "level": "public",
+        "level": "High",
         "districtID": districtID
     }
 
     response = requests.get("https://api.schooldigger.com/v2.0/schools", params=params, headers=headers).json()
-    queryAccomodations(response["schoolList"])
+    queryAccomodations.delay(response["schoolList"])
     return response["schoolList"]
 
 @app.route("/api/v1/getMatchedAccomodations", methods=['POST'])
@@ -297,6 +305,11 @@ def getMatchedAccomodations():
     )
     response = completion.choices[0].message.content
     return response
+
+@app.route("/api/v1/getRecommendedSchools", methods=['GET'])
+def getRecommendedSchools():
+    ref = db.reference("recommended_schools")
+    return ref.get()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 cred = credentials.Certificate('credential.json')
