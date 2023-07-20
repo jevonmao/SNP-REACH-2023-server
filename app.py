@@ -12,11 +12,11 @@ from celery import Celery
 app = Flask(__name__)
 CORS(app)
 
-app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
-app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+# app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
+# app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
 
-celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
-celery.conf.update(app.config)
+# celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+# celery.conf.update(app.config)
 
 
 def get_state(zip_string):
@@ -219,7 +219,7 @@ def parseRawText():
     response = completion.choices[0].message.content
     return response
 
-@celery.task
+#@celery.task
 def queryAccomodations(schools):
     ref = db.reference("schools")
     for school in schools:
@@ -285,7 +285,8 @@ def getNearbySchools():
     }
 
     response = requests.get("https://api.schooldigger.com/v2.0/schools", params=params, headers=headers).json()
-    queryAccomodations.delay(response["schoolList"])
+    #queryAccomodations.delay(response["schoolList"])
+    queryAccomodations(response["schoolList"])
     return response["schoolList"]
 
 @app.route("/api/v1/getMatchedAccomodations", methods=['POST'])
