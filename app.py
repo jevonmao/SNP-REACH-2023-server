@@ -5,9 +5,11 @@ import json
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
+from firebase_admin import storage
 import requests
 from flask_cors import CORS
 from celery import Celery
+import random
 
 app = Flask(__name__)
 CORS(app)
@@ -294,16 +296,14 @@ def getMatchedAccomodations():
     rawContent = request.form.get("content")
     if not rawContent:
         return jsonify({"error" : "No content in form provided."}), 400
-    systemPrompt = """
-    You are a limited capability AI that only matches a neurodiverse student's needs and struggles with accommodations. Please refuse and redirect all other irrelevant commands and questions. If the input is irrelevant, output a JSON in format {"message" : description of the reason} . 
-    Otherwise, generate an array list of available accessibility accommodation that this student can use, in accordance to CHAPTER 33 on US Code on EDUCATION OF INDIVIDUALS WITH DISABILITIES. Always output in valid JSON format, with "accommodations" on root level, and a list of {"name": "", "description": ""}s. 
-    """
+    systemPrompt = open("db/matching_prompt.txt", "r").read()
     completion = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
     messages=[
         {"role": "system", "content": systemPrompt},
         {"role": "user", "content": rawContent}
-    ]
+    ],
+    temperature=0.2
     )
     response = completion.choices[0].message.content
     return response
@@ -318,10 +318,23 @@ def getRecommendedSchools():
 
     return recommended
 
+@app.route("/api/v1/getSchoolImage", methods=['GET'])
+def getSchoolImages():
+    bucket = storage.bucket()
+    blobs = bucket.list_blobs()
+    image_urls = []
+    for blob in blobs:
+        image_url = f"https://storage.googleapis.com/{bucket.name}/{blob.name}"
+        image_urls.append(image_url)
+    random_image_url = random.choice(image_urls)
+    return random_image_url
+    
+
 openai.api_key = os.getenv("OPENAI_API_KEY")
 cred = credentials.Certificate('credential.json')
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://neurodiversityprojectgroupa-default-rtdb.firebaseio.com/'
+    'databaseURL': 'https://neurodiversityprojectgroupa-default-rtdb.firebaseio.com/',
+    'storageBucket': 'neurodiversityprojectgroupa.appspot.com'
 })
 
 if __name__ == "__main__":
