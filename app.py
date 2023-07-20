@@ -211,7 +211,7 @@ def parseRawText():
 
 def queryAccomodations(schools):
     ref = db.reference("schools")
-    ref.set({school.id : "test" for school in schools})
+    ref.set({school["schoolid"] : "test" for school in schools})
 
 @app.route("/api/v1/getNearbySchools", methods=['GET'])
 def getNearbySchools():
@@ -219,6 +219,11 @@ def getNearbySchools():
     zip = str(params.get("zip") or "")
     city = str(params.get("city") or "")
     state = str(params.get("state") or "")
+    '''
+    Sort list. Values are: schoolname, distance, rank. For descending order, precede with '-' i.e. -schoolname (optional, default: schoolname)
+    '''
+    sortBy = str(params.get("sortBy") or "")
+
     if not zip and not city and not state:
         return jsonify({"error" : "No query parameters provided."})
     if city and zip:
@@ -236,11 +241,13 @@ def getNearbySchools():
         "city": city,
         "appID": os.getenv("APP_ID"),
         "perPage": "50",
+        "sortBy": sortBy,
         "appKey": os.getenv("APP_KEY"),
     }
 
     response = requests.get("https://api.schooldigger.com/v2.0/schools", params=params, headers=headers).json()
     print(response["numberOfPages"])
+    queryAccomodations(response["schoolList"])
     return response["schoolList"]
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
