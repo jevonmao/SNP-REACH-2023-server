@@ -1,3 +1,4 @@
+from re import L
 from flask import Flask, jsonify, request
 import os
 import openai
@@ -269,7 +270,10 @@ def getNearbySchools():
 
     if devMode == "true":
         mock_json = open("mock.json", "r").read()
-        return json.loads(mock_json)
+        schools = json.loads(mock_json)
+        for school in schools:
+            school["imageUrl"] = getSchoolImage()
+        return schools
     
     headers = {
     "Accept": "application/json",
@@ -289,11 +293,14 @@ def getNearbySchools():
     response = requests.get("https://api.schooldigger.com/v2.0/schools", params=params, headers=headers).json()
     #queryAccomodations.delay(response["schoolList"])
     queryAccomodations(response["schoolList"])
-    return response["schoolList"]
+    schoolList = response["schoolList"]
+    for school in schoolList:
+        school["imageUrl"] = getSchoolImage()
+    return schoolList
 
 @app.route("/api/v1/getMatchedAccomodations", methods=['POST'])
 def getMatchedAccomodations():
-    rawContent = request.form.get("content")
+    rawContent = request.args.get("content")
     if not rawContent:
         return jsonify({"error" : "No content in form provided."}), 400
     systemPrompt = open("db/matching_prompt.txt", "r").read()
@@ -318,8 +325,7 @@ def getRecommendedSchools():
 
     return recommended
 
-@app.route("/api/v1/getSchoolImage", methods=['GET'])
-def getSchoolImages():
+def getSchoolImage():
     bucket = storage.bucket()
     blobs = bucket.list_blobs()
     image_urls = []
