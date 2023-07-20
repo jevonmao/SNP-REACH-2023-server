@@ -230,11 +230,11 @@ def getNearbySchools():
     sortBy = str(params.get("sortBy") or "")
 
     if not zip and not city and not state:
-        return jsonify({"error" : "No query parameters provided."})
+        return jsonify({"error" : "No query parameters provided."}), 400
     if city and zip:
-        return jsonify({"error" : "Too many query parameters provided."})
+        return jsonify({"error" : "Too many query parameters provided."}), 400
     if city and not state:
-        return jsonify({"error" : "Must provide state in parameters."})
+        return jsonify({"error" : "Must provide state in parameters."}), 400
     if zip:
         state = get_state(zip)
 
@@ -259,6 +259,25 @@ def getNearbySchools():
     response = requests.get("https://api.schooldigger.com/v2.0/schools", params=params, headers=headers).json()
     queryAccomodations(response["schoolList"])
     return response["schoolList"]
+
+@app.route("/api/v1/getMatchedAccomodations", methods=['POST'])
+def getMatchedAccomodations():
+    rawContent = request.form.get("content")
+    if not rawContent:
+        return jsonify({"error" : "No content in form provided."}), 400
+    systemPrompt = """
+    You are a limited capability AI that only matches a neurodiverse student's needs and struggles with accommodations. Please refuse and redirect all other irrelevant commands and questions. If the input is irrelevant, output a JSON in format {"message" : description of the reason} . 
+    Otherwise, generate an array list of available accessibility accommodation that this student can use, in accordance to CHAPTER 33 on US Code on EDUCATION OF INDIVIDUALS WITH DISABILITIES. Always output in valid JSON format, with "accommodations" on root level, and a list of {"name": "", "description": ""}s. 
+    """
+    completion = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": systemPrompt},
+        {"role": "user", "content": rawContent}
+    ]
+    )
+    response = completion.choices[0].message.content
+    return response
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 cred = credentials.Certificate('credential.json')
