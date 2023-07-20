@@ -211,7 +211,8 @@ def parseRawText():
 
 def queryAccomodations(schools):
     ref = db.reference("schools")
-    ref.set({school["schoolid"] : "test" for school in schools})
+    ref.set({school["schoolid"] : {"info" : school} for school in schools})
+
 
 @app.route("/api/v1/getNearbySchools", methods=['GET'])
 def getNearbySchools():
@@ -243,6 +244,7 @@ def getNearbySchools():
         "perPage": "50",
         "sortBy": sortBy,
         "appKey": os.getenv("APP_KEY"),
+        "level": "public"
     }
 
     response = requests.get("https://api.schooldigger.com/v2.0/schools", params=params, headers=headers).json()

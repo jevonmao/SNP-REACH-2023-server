@@ -13,6 +13,7 @@ charset-normalizer==3.2.0
 chroma-hnswlib==0.7.1
 chromadb==0.4.2
 click==8.1.5
+colorama==0.4.6
 coloredlogs==15.0.1
 cryptography==41.0.2
 dataclasses-json==0.5.12
@@ -24,13 +25,14 @@ Flask-Cors==4.0.0
 flatbuffers==23.5.26
 frozenlist==1.4.0
 google-api-core==2.11.1
-google-api-python-client==2.94.0
+google-api-python-client==2.48.0
 google-auth==2.22.0
 google-auth-httplib2==0.1.0
 google-cloud-core==2.3.3
 google-cloud-firestore==2.11.1
 google-cloud-storage==2.10.0
 google-crc32c==1.5.0
+Google-Images-Search==1.4.6
 google-resumable-media==2.5.0
 googleapis-common-protos==1.59.1
 grpcio==1.56.2
@@ -62,6 +64,7 @@ openapi-schema-pydantic==1.2.4
 overrides==7.3.1
 packaging==23.1
 pandas==2.0.3
+Pillow==10.0.0
 posthog==3.0.1
 proto-plus==1.22.3
 protobuf==4.23.4
@@ -70,11 +73,13 @@ pyasn1==0.5.0
 pyasn1-modules==0.3.0
 pycparser==2.21
 pydantic==1.10.11
+pyfiglet==0.8.post1
 PyJWT==2.8.0
 pyparsing==3.1.0
 PyPika==0.48.9
 python-dateutil==2.8.2
 python-dotenv==1.0.0
+python-resize-image==1.1.20
 pytz==2023.3
 PyYAML==6.0.1
 requests==2.31.0
@@ -85,6 +90,7 @@ SQLAlchemy==2.0.19
 starlette==0.27.0
 sympy==1.12
 tenacity==8.2.2
+termcolor==1.1.0
 tokenizers==0.13.3
 tqdm==4.65.0
 typing-inspect==0.9.0

@@ -1,17 +1,12 @@
-import requests
+import os
+from google_images_search import GoogleImagesSearch
 
-headers = {
-    "Accept": "application/json",
+gis = GoogleImagesSearch(os.getenv("GOOGLE_API_KEY"), "c6bcf034c91f74116")
+_search_params = {
+    'q': 'palo alto high school',
+    'img_type': 'photo',
+    'img_size': 'medium'
 }
 
-params = {
-    "st": "ca",
-    "zip": "",
-    "city": "palo alto",
-    "appID": "df7a786d",
-    "perPage": "50",
-    "appKey": "8ad9a07621d8a07571be57716b0b8b1f",
-}
-
-response = requests.get("https://api.schooldigger.com/v2.0/schools", params=params, headers=headers)
-print(response.json()["schoolList"])
+gis.search(search_params=_search_params)
+print(gis.results()[0].url)
