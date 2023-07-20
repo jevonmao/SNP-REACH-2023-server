@@ -213,7 +213,25 @@ def parseRawText():
 
 def queryAccomodations(schools):
     ref = db.reference("schools")
-    ref.set({school["schoolid"] : {"info" : school} for school in schools})
+    for school in schools:
+        school_id = school["schoolid"]
+        school_info = ref.child(school_id).get()
+        if school_info is None:
+            ref.child(school_id).set({"info": school, "accommodations": ""})
+
+@app.route("/api/v1/getSchoolDetail", methods=['GET'])
+def getSchoolDetail():
+    params = request.args
+    schoolID = str(params.get("id") or "")
+    ref = db.reference("schools")
+    if not schoolID:
+        return jsonify({"error" : "No ID provided."}), 400
+    school = ref.child(schoolID).child("accommodations")
+    data = school.get()
+    if data is not None:
+        return data
+    else:
+        return jsonify({})
 
 
 @app.route("/api/v1/getNearbySchools", methods=['GET'])
@@ -223,17 +241,17 @@ def getNearbySchools():
     city = str(params.get("city") or "")
     state = str(params.get("state") or "")
     devMode = str(params.get("devMode") or "true")
-
+    districtID = str(params.get("districtID") or "")
     '''
     Sort list. Values are: schoolname, distance, rank. For descending order, precede with '-' i.e. -schoolname (optional, default: schoolname)
     '''
     sortBy = str(params.get("sortBy") or "")
 
-    if not zip and not city and not state:
+    if not zip and not city and not state and not districtID:
         return jsonify({"error" : "No query parameters provided."}), 400
     if city and zip:
         return jsonify({"error" : "Too many query parameters provided."}), 400
-    if city and not state:
+    if (city or districtID) and not state:
         return jsonify({"error" : "Must provide state in parameters."}), 400
     if zip:
         state = get_state(zip)
@@ -253,7 +271,8 @@ def getNearbySchools():
         "perPage": "50",
         "sortBy": sortBy,
         "appKey": os.getenv("APP_KEY"),
-        "level": "public"
+        "level": "public",
+        "districtID": districtID
     }
 
     response = requests.get("https://api.schooldigger.com/v2.0/schools", params=params, headers=headers).json()
@@ -287,3 +306,6 @@ firebase_admin.initialize_app(cred, {
 
 if __name__ == "__main__":
     app.run()
+
+# GUNN: 062961004587
+# Palo: 062961004596

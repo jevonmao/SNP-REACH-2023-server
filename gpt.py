@@ -1,12 +1,16 @@
-import os
-from google_images_search import GoogleImagesSearch
+from langchain.text_splitter import TokenTextSplitter
+from langchain.document_loaders import TextLoader
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.vectorstores import Chroma
 
-gis = GoogleImagesSearch(os.getenv("GOOGLE_API_KEY"), "c6bcf034c91f74116")
-_search_params = {
-    'q': 'palo alto high school',
-    'img_type': 'photo',
-    'img_size': 'medium'
-}
+handbook = TextLoader("db/selpa_handbook.txt").load()
+text_splitter = TokenTextSplitter(chunk_size=2000, chunk_overlap=0)
+documents = text_splitter.split_documents(handbook)
+db = Chroma.from_documents(documents, OpenAIEmbeddings())
 
-gis.search(search_params=_search_params)
-print(gis.results()[0].url)
+query = "What accomodations can a student with ADHD access?"
+#docs = db.similarity_search(query)
+# with open("db/output.txt", "w") as f:
+#     for doc in docs:
+#         f.write(doc.page_content)
+docs = db.similarity_search_with_score(query)
