@@ -6,8 +6,10 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
 import requests
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 def get_state(zip_string):
     if not isinstance(zip_string, str):
