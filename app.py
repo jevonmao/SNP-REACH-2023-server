@@ -220,7 +220,7 @@ def getNearbySchools():
     zip = str(params.get("zip") or "")
     city = str(params.get("city") or "")
     state = str(params.get("state") or "")
-    devMode = params.get("devMode")
+    devMode = str(params.get("devMode") or "true")
 
     '''
     Sort list. Values are: schoolname, distance, rank. For descending order, precede with '-' i.e. -schoolname (optional, default: schoolname)
@@ -236,7 +236,7 @@ def getNearbySchools():
     if zip:
         state = get_state(zip)
 
-    if devMode == True or devMode == None:
+    if devMode == "true":
         mock_json = open("mock.json", "r").read()
         return json.loads(mock_json)
     
@@ -255,7 +255,6 @@ def getNearbySchools():
     }
 
     response = requests.get("https://api.schooldigger.com/v2.0/schools", params=params, headers=headers).json()
-    print(response["numberOfPages"])
     queryAccomodations(response["schoolList"])
     return response["schoolList"]
 
