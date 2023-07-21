@@ -325,13 +325,19 @@ def getRecommendedSchools():
 
     return recommended
 
+# @app.route("/api/v1/postComment", methods=["POST"])
+# def postComment():
+#     comment = request.args.get("comment")
+#     token = request.args.get("token")
+#     return
+
 def getSchoolImage():
     bucket = storage.bucket()
     blobs = bucket.list_blobs()
     image_urls = []
     for blob in blobs:
-        image_url = f"https://storage.googleapis.com/{bucket.name}/{blob.name}"
-        image_urls.append(image_url)
+        blob.make_public()
+        image_urls.append(blob.public_url)
     random_image_url = random.choice(image_urls)
     return random_image_url
     
