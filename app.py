@@ -240,6 +240,7 @@ def getSchoolDetail():
         return jsonify({"error" : "No ID provided."}), 400
     school = ref.child(schoolID)
     data = school.get()
+    data["imageUrl"] = getSchoolImage()
     if data is not None:
         return data
     else:
